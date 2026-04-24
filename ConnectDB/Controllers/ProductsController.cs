@@ -22,10 +22,15 @@ namespace EcommerceAPI.Controllers
 
         // GET: api/v1/products
         // Lấy danh sách tất cả sản phẩm (Ai cũng xem được)
+        // GET: api/v1/products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            return await _context.Products.ToListAsync();
+            // THÊM .Include(p => p.Images) ĐỂ LẤY KÈM ẢNH (Lưu ý: "Images" là tên thuộc tính List<ProductImage> trong model Product của bạn. Nếu bạn đặt tên khác thì đổi lại cho đúng nhé)
+            var products = await _context.Products
+                                         .Include(p => p.Images) // Join sang bảng ProductImages
+                                         .ToListAsync();
+            return products;
         }
 
         // GET: api/v1/products/5
