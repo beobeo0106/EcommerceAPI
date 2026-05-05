@@ -16,7 +16,7 @@ namespace EcommerceAPI.Controllers
             _context = context;
         }
 
-        // 1. LẤY DANH SÁCH (READ ALL) - Đã có
+        // 1. LẤY DANH SÁCH - Giữ nguyên
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetUsers()
         {
@@ -32,40 +32,44 @@ namespace EcommerceAPI.Controllers
                 .ToListAsync();
         }
 
-        // 2. THÊM MỚI (CREATE) - BỔ SUNG MỚI
+        // 2. THÊM MỚI - Giữ nguyên
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-            // Vì PasswordHash là trường bắt buộc trong Model, 
-            // bạn nên gán giá trị mặc định nếu React không gửi mật khẩu qua form này.
             if (string.IsNullOrEmpty(user.PasswordHash))
             {
-                user.PasswordHash = "123456"; // Mật khẩu mặc định
+                user.PasswordHash = "123456";
             }
 
             user.CreatedAt = DateTime.UtcNow;
-
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUsers), new { id = user.Id }, user);
         }
 
-        // 3. CẬP NHẬT (UPDATE) - BỔ SUNG MỚI
+        // 3. CẬP NHẬT (ĐÃ SỬA LỖI 400)
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserUpdateDto userDto)
         {
-            if (id != user.Id) return BadRequest();
+            // Kiểm tra ID khớp
+            if (id != userDto.Id) return BadRequest("ID mismatch!");
 
-            // Tìm user gốc trong DB để giữ lại mật khẩu cũ nếu không muốn thay đổi mật khẩu
             var existingUser = await _context.Users.FindAsync(id);
             if (existingUser == null) return NotFound();
 
-            // Cập nhật các thông tin từ Form gửi lên
-            existingUser.Name = user.Name;
-            existingUser.Email = user.Email;
-            existingUser.Role = user.Role;
+            // Cập nhật thông tin cơ bản
+            existingUser.Name = userDto.Name;
+            existingUser.Email = userDto.Email;
+            existingUser.Role = userDto.Role;
 
+            // CHỈ cập nhật mật khẩu nếu người dùng nhập mật khẩu mới
+            if (!string.IsNullOrEmpty(userDto.PasswordHash))
+            {
+                existingUser.PasswordHash = userDto.PasswordHash;
+            }
+
+            // Đánh dấu là đã thay đổi
             _context.Entry(existingUser).State = EntityState.Modified;
 
             try
@@ -81,7 +85,7 @@ namespace EcommerceAPI.Controllers
             return NoContent();
         }
 
-        // 4. XOÁ (DELETE) - Đã có
+        // 4. XOÁ - Giữ nguyên
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -93,5 +97,15 @@ namespace EcommerceAPI.Controllers
 
             return NoContent();
         }
+    }
+
+    // LỚP TRUNG GIAN ĐỂ NHẬN DỮ LIỆU TỪ REACT (Đặt ở cuối file)
+    public class UserUpdateDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = "Customer";
+        public string? PasswordHash { get; set; } // Dấu ? cho phép trường này bị NULL mà không báo lỗi 400
     }
 }
