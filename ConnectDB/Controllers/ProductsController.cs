@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using EcommerceAPI.Data;
 using EcommerceAPI.Models;
-using Microsoft.AspNetCore.Http; // <-- Thêm dòng này để xử lý IFormFile
-using System.IO;                 // <-- Thêm dòng này để xử lý lưu file vào thư mục
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace EcommerceAPI.Controllers
 {
@@ -22,13 +22,13 @@ namespace EcommerceAPI.Controllers
 
         // GET: api/v1/products
         // Lấy danh sách tất cả sản phẩm (Ai cũng xem được)
-        // GET: api/v1/products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-            // THÊM .Include(p => p.Images) ĐỂ LẤY KÈM ẢNH (Lưu ý: "Images" là tên thuộc tính List<ProductImage> trong model Product của bạn. Nếu bạn đặt tên khác thì đổi lại cho đúng nhé)
+            // ĐÃ SỬA: Thêm .Include(p => p.Category) để lấy thông tin danh mục
             var products = await _context.Products
                                          .Include(p => p.Images) // Join sang bảng ProductImages
+                                         .Include(p => p.Category) // <--- THÊM DÒNG NÀY VÀO ĐÂY
                                          .ToListAsync();
             return products;
         }
@@ -38,7 +38,11 @@ namespace EcommerceAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            // ĐÃ SỬA: Đổi FindAsync sang SingleOrDefaultAsync để dùng được .Include
+            var product = await _context.Products
+                                         .Include(p => p.Images)
+                                         .Include(p => p.Category) // <--- THÊM DÒNG NÀY VÀO ĐÂY
+                                         .SingleOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
