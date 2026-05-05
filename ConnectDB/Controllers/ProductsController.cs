@@ -135,7 +135,7 @@ namespace EcommerceAPI.Controllers
                 return BadRequest(new { message = "Vui lòng chọn một file ảnh!" });
 
             // Chỉ cho phép ảnh (đuôi jpg, png, jpeg...)
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".jfif", ".webp" };
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension))
                 return BadRequest(new { message = "Chỉ chấp nhận file ảnh (.jpg, .png, .jpeg, .gif)" });

@@ -10,7 +10,10 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. ĐĂNG KÝ SERVICES CƠ BẢN
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 builder.Services.AddEndpointsApiExplorer();
 // ==========================================
 // THÊM MỚI: CẤU HÌNH CORS (CHO PHÉP FRONTEND TRUY CẬP)
