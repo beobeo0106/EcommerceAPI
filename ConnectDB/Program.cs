@@ -99,7 +99,7 @@ app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// KIỂM TRA ĐĂNG NHẬP
+// KIỂM TRA ĐĂNG NHẬP   
 app.UseAuthentication();
 app.UseAuthorization();
 
